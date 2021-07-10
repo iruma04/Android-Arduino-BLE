@@ -110,6 +110,8 @@ void setup() {
   pinMode(z, INPUT);
 
   state = false;
+    
+  ledSetup();
 
   //BLEセットアップ
   BLEDevice::init("ESP32");
@@ -134,8 +136,6 @@ void setup() {
   pAdvertising->setScanResponse(false);
   pAdvertising->setMinPreferred(0x0);  // set value to 0x00 to not advertise this parameter
   BLEDevice::startAdvertising();
-
-  ledSetup();
 }
 
 void loop() {
