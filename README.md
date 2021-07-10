@@ -1,4 +1,4 @@
 # Android-Arduino-BLE
 
 # Android
-1## BLEデバイスを検出
+## 1.BLEデバイスを検出
