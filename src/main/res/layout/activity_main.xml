@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/lineChert"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="64dp"
+        android:layout_marginTop="64dp"
+        android:layout_marginEnd="64dp"
+        android:layout_marginBottom="64dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/main_toolbar" />
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/main_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#CFCFCF"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="scene_menu"
+            android:onClick="showPopup"
+            android:src="@drawable/ic_baseline_list_24" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="ホーム"
+            android:textColor="#000000"
+            android:textSize="42dp"
+            tools:layout_editor_absoluteX="80dp"
+            tools:layout_editor_absoluteY="4dp" />
+    </androidx.appcompat.widget.Toolbar>
+
+    <Button
+        android:id="@+id/chart_change"
+        style="@style/Widget.MaterialComponents.Button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#A3A3A3"
+        android:onClick="chartChange"
+        android:text="接続を開始"
+        android:textColor="#000000"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/lineChert"
+        app:layout_constraintEnd_toEndOf="@+id/lineChert"
+        app:layout_constraintTop_toBottomOf="@+id/main_toolbar" />
+
+    <TextView
+        android:id="@+id/device_name_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="NoName"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/lineChert"
+        app:layout_constraintStart_toStartOf="@+id/lineChert"
+        app:layout_constraintTop_toBottomOf="@+id/main_toolbar" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+

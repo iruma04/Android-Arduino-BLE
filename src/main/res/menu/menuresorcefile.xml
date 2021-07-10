@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/home_menu"
+          android:title="ホーム"></item>
+    <item android:id="@+id/game_menu"
+          android:title="ゲーム"></item>
+</menu>
