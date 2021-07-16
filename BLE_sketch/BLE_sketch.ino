@@ -17,7 +17,7 @@ const int RED = 25;
 const int GREEN = 26;
 const int BLUE = 27;
 
-const int BUTTON = 2;
+const int BUTTON = 13;
 
 int i = 0;
 bool state = false;
