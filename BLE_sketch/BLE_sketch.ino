@@ -9,30 +9,11 @@ BLECharacteristic* pCharacteristic = NULL;
 bool deviceConnected = false;
 bool oldDeviceConnected = false;
 
-#define SERVICE_UUID "4fafc201-1fb5-459e-8fcc-c5c9c331914b" //サーバーUUID
-#define WRITE_UUID   "b62c1ffa-bdd8-46ea-a378-d539cf405d93" //書き込みUUID
-
-//ピンを設定
-const int RED = 25;
-const int GREEN = 26;
-const int BLUE = 27;
-
-const int BUTTON = 13;
-
-int i = 0;
-bool state = false;
-bool readState = false;
-
-const int x = 32;
-const int y = 35;
-const int z = 34;
+#define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
+#define CHARACTERISTIC_UUID "b62c1ffa-bdd8-46ea-a378-d539cf405d93"
 
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
-      digitalWrite(RED, HIGH);
-      digitalWrite(GREEN, HIGH);
-      digitalWrite(BLUE, LOW);
-
       deviceConnected = true;
     };
 
@@ -41,25 +22,38 @@ class MyServerCallbacks: public BLEServerCallbacks {
     }
 };
 
-int aSensorX() {
-  int x;
-  x = analogRead(x); // X軸
-  return x;
+//ピンを設定
+int RED = 25;
+int GREEN = 26;
+int BLUE = 27;
+
+const int BUTTON = 13;
+bool state;
+
+const int x = 32;
+const int y = 35;
+const int z = 34;
+
+String aSensorX() {
+  int x = analogRead(x); // X軸
+  String sx = (String)x;
+  return sx;
 }
 
-int aSensorY() {
-  int y;
-  y = analogRead(y);
-  return y;
+String aSensorY() {
+  int y = analogRead(y);
+  String sy = (String)y;
+  return sy;
 }
 
-int aSensorZ() {
-  int z;
-  z = analogRead(z);
-  return z;
+String aSensorZ() {
+  int z = analogRead(z);
+  String sz = (String)z;
+  return sz;
 }
 
 void mButton() {
+  noInterrupts();
   if (state) {
     //機器の状態をoffにするときの処理
     state = false;
@@ -75,43 +69,34 @@ void mButton() {
     digitalWrite(GREEN, HIGH);
     digitalWrite(BLUE, LOW);
   }
-}
-
-void ledSetup() {
-  while (i < 2) {
-    digitalWrite(RED, HIGH);
-    digitalWrite(GREEN, HIGH);
-    digitalWrite(BLUE, HIGH);
-
-    delay(100);
-
-    digitalWrite(RED, LOW);
-    digitalWrite(GREEN, LOW);
-    digitalWrite(BLUE, LOW);
-
-    delay(50);
-
-    i++;
-  }
+  interrupts();
 }
 
 void setup() {
   //シリアルモニターの初期化をする
   Serial.begin(115200);
 
+  while ( !Serial ) {
+  }
+
   pinMode(RED, OUTPUT);
   pinMode(GREEN, OUTPUT);
   pinMode(BLUE, OUTPUT);
-
   pinMode(BUTTON, INPUT);
 
   pinMode(x, INPUT);
   pinMode(y, INPUT);
   pinMode(z, INPUT);
 
+  //初期設定として青を出力
+  digitalWrite(RED, LOW);
+  digitalWrite(GREEN, LOW);
+  digitalWrite(BLUE, HIGH);
+
   state = false;
-    
-  ledSetup();
+
+  //割り込み処理
+  attachInterrupt(2, mButton, RISING);
 
   //BLEセットアップ
   BLEDevice::init("ESP32");
@@ -122,11 +107,12 @@ void setup() {
   BLEService *pService = pServer->createService(SERVICE_UUID);
 
   pCharacteristic = pService->createCharacteristic(
-                      WRITE_UUID,
-                      BLECharacteristic::PROPERTY_READ  |
-                      BLECharacteristic::PROPERTY_WRITE |
+                      CHARACTERISTIC_UUID,
+                      BLECharacteristic::PROPERTY_READ   |
+                      BLECharacteristic::PROPERTY_WRITE  |
                       BLECharacteristic::PROPERTY_NOTIFY
                     );
+
   pCharacteristic->addDescriptor(new BLE2902());
 
   pService->start();
@@ -139,43 +125,37 @@ void setup() {
 }
 
 void loop() {
-  detachInterrupt(2);//割り込み禁止
-  // notify changed value
-  if (deviceConnected) {
-    attachInterrupt(2, mButton, RISING);//割り込みピン指定
-    //ボタンが押されたら
-    if (state) {
-      //センサの数値を取得する
-      String sx = (String)aSensorX();
-      String sy = (String)aSensorY();
-      String sz = (String)aSensorZ();
-
+  if (state) {
+    // notify changed value
+    if (deviceConnected) {
       //","これの位置で区切るため間に仕込む
-      String strVal(sx + "," + sy + "," + sz);
+      String strVal(aSensorX() + "," + aSensorY() + "," + aSensorZ());
       Serial.println(strVal);
 
       pCharacteristic->setValue(strVal.c_str());
       pCharacteristic->notify();
       delay(3); // bluetooth stack will go into congestion, if too many packets are sent, in 6 hours test i was able to go as low as 3ms
     }
+    // disconnecting
+    if (!deviceConnected && oldDeviceConnected) {
+      delay(500); // give the bluetooth stack the chance to get things ready
+      pServer->startAdvertising(); // restart advertising
+      oldDeviceConnected = deviceConnected;
+    }
+    // connecting
+    if (deviceConnected && !oldDeviceConnected) {
+      // do stuff here on connecting
+      oldDeviceConnected = deviceConnected;
+    }
+  } else {
+    //シリアルプロッタ用
+    Serial.print(analogRead(x));
+    Serial.print(",");
+    Serial.print(analogRead(y));
+    Serial.print(",");
+    Serial.print(analogRead(z));
+    Serial.println("");
   }
-  // disconnecting
-  if (!deviceConnected && oldDeviceConnected) {
-    digitalWrite(RED, LOW);
-    digitalWrite(GREEN, LOW);
-    digitalWrite(BLUE, LOW);
 
-    state = false;
-
-    delay(500); // give the bluetooth stack the chance to get things ready
-
-    pServer->startAdvertising(); // restart advertising
-    oldDeviceConnected = deviceConnected;
-  }
-  // connecting
-  if (deviceConnected && !oldDeviceConnected) {
-    // do stuff here on connecting
-    oldDeviceConnected = deviceConnected;
-  }
   delay(100);
 }
