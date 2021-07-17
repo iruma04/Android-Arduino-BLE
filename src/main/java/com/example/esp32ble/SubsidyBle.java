@@ -102,14 +102,18 @@ public class SubsidyBle {
             //arduinoで{String s = x + "," + y + "," + z}この形で送る
             // キャラクタリスティックのUUIDをチェック
             if(READ_UUID.equals(characteristic.getUuid().toString())){
-                String data = characteristic.getStringValue(0);//データ取得
-                if (data != null && data.length() > 0){
-                    String[] listData = data.split(",");           //取得したデータを","の位置で分割
-                    int xData = Integer.parseInt(listData[0]);
-                    int yData = Integer.parseInt(listData[1]);
-                    int zData = Integer.parseInt(listData[2]);
-                    Log.i(TAG,"x:"+xData+"y:"+yData+"z:"+zData);
-                    m.LatestData(xData,yData,zData);
+                try{
+                    String data = characteristic.getStringValue(0);//データ取得
+                     if (data != null && data.length() > 0){
+                        String[] listData = data.split(",");           //取得したデータを","の位置で分割
+                         int xData = Integer.parseInt(listData[0]);
+                         int yData = Integer.parseInt(listData[1]);
+                         int zData = Integer.parseInt(listData[2]);
+                         Log.i(TAG,"x:"+xData+"y:"+yData+"z:"+zData);
+                         m.LatestData(xData,yData,zData);
+                    }       
+                }catch (IndexOutOfBoundsException e) {
+                        Log.e(TAG,"エラー:" + e);
                 }
             }
         }
