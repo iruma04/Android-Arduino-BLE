@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements MenuItem.OnMenuIt
     private BluetoothAdapter bluetoothAdapter;
     private final int duration = Toast.LENGTH_SHORT;
     private SubsidyBle subBle;
+    public boolean mainView = false;
 
     private BtDialogFragment dialog;
     public final String KI_NAME = "pareState";
@@ -65,6 +66,9 @@ public class MainActivity extends AppCompatActivity implements MenuItem.OnMenuIt
         Toolbar Toolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(Toolbar);
 
+        View decor = getWindow().getDecorView();
+        decor.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+
         changeButton = findViewById(R.id.chart_change);
         changeButton.setOnClickListener(this::onClick);
         nameText = findViewById(R.id.device_name_text);
@@ -76,6 +80,7 @@ public class MainActivity extends AppCompatActivity implements MenuItem.OnMenuIt
         chart = findViewById(R.id.lineChert);
         lineChart();
         i = 0;
+
         subBle = new SubsidyBle(this);
 
         //BLEの設定
@@ -101,6 +106,8 @@ public class MainActivity extends AppCompatActivity implements MenuItem.OnMenuIt
         super.onResume();
 
         requestBluetoothFeature();
+
+        mainView = true;
     }
 
     //画面が遷移したとあとに実行される
@@ -109,6 +116,8 @@ public class MainActivity extends AppCompatActivity implements MenuItem.OnMenuIt
         super.onPause();
 
         chart.clear();
+
+        mainView = false;
     }
 
     //アプリがタスクを切られた時
@@ -152,7 +161,7 @@ public class MainActivity extends AppCompatActivity implements MenuItem.OnMenuIt
     /**ボタン**/
 
     //グラフの表示非表示を切り替えるクリックメソッド
-    public void onClick(View v){
+    private void onClick(View v){
         buttonChange();
     }
 
@@ -163,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements MenuItem.OnMenuIt
         }else{
             changeButton.setText(NOW_DISCONNECT);//Connectと表示
             connectState = false;
-            nameText.setText("NoName");
+            nameText.setText("未接続");
 
             subBle.disconnectS();
             Toast.makeText(this,"接続を終了しました",Toast.LENGTH_SHORT).show();
@@ -217,7 +226,7 @@ public class MainActivity extends AppCompatActivity implements MenuItem.OnMenuIt
         //グラフのY軸の設定
         YAxis yAxis = chart.getAxisLeft();              //YAxisをインスタンス化
         yAxis.setAxisMinimum(0);                        //Y軸最小値
-        yAxis.setAxisMaximum(5000);                     //Y軸最大値
+        yAxis.setAxisMaximum(4095);                     //Y軸最大値
         yAxis.setDrawGridLines(true);                   //グリッドを表示
 
         LineData data = new LineData();
@@ -232,8 +241,6 @@ public class MainActivity extends AppCompatActivity implements MenuItem.OnMenuIt
         yLine.add(new Entry(i, yFlt));
         zLine.add(new Entry(i, zFlt));
 
-
-
         //3,LineDataSet
         LineDataSet xSet = new LineDataSet(xLine,"X軸");
         xSet.setColor(Color.RED);
@@ -241,8 +248,7 @@ public class MainActivity extends AppCompatActivity implements MenuItem.OnMenuIt
         xSet.setLineWidth(1.5f);              //線の太さ
         xSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);// 折れ線グラフの表示方法
         xSet.setDrawValues(false);            // 折れ線グラフの値を非表示
-
-
+        
         LineDataSet ySet = new LineDataSet(yLine,"Y軸");
         ySet.setColor(Color.BLUE);
         ySet.setDrawCircles(false);
@@ -286,6 +292,9 @@ public class MainActivity extends AppCompatActivity implements MenuItem.OnMenuIt
         popup.setOnMenuItemClickListener(this::onMenuItemClick);    //下のメソッド
         inflater.inflate(R.menu.menuresorcefile, popup.getMenu());
         popup.show();
+        if (connectState){
+            buttonChange();
+        }
     }
 
     //interfaceをimplementsしたものだからOverrideしてどのmenuが押されたか判断する
