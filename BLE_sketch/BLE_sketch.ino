@@ -154,5 +154,5 @@ void loop() {
     Serial.print(analogRead(az));
     Serial.println("");
   }
-  delay(10);
+  delay(100);
 }
