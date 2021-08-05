@@ -12,6 +12,8 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.core.app.NavUtils;
+
 import java.util.Set;
 import java.util.UUID;
 
@@ -57,15 +59,27 @@ public class SubsidyBle {
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             //Serviceが見つかったら実行
             if (status == bluetoothGatt.GATT_SUCCESS){
-                g.setGpText(1,"接続に成功しました");
+                try{
+                    g.setGpText(1,"接続に成功しました");
+                }catch (NullPointerException e){
+                    Log.e("Mainからの接続",e+"");
+                }
                 //UUIDが同じかどうか確認する
                 BluetoothGattService service = gatt.getService(UUID.fromString(DEVICE_SERVICE_UUID));
                 if (service != null){
+                    try{
                     g.setGpText(2,"マイコンを発見しました");
+                    }catch (NullPointerException e){
+                        Log.e("Mainからの接続",e+"");
+                    }
                     //指定したUUIDを持つCharacteristicを確認する
                     readCharacteristic = service.getCharacteristic(UUID.fromString(READ_UUID));
                     if (readCharacteristic != null){
+                        try{
                         g.setGpText(3,"データの取得先を確認しました");
+                        }catch (NullPointerException e){
+                            Log.e("Mainからの接続",e+"");
+                        }
                         // Service, CharacteristicのUUIDが同じならBluetoothGattを更新する
                         bluetoothGatt = gatt;
 
@@ -96,49 +110,61 @@ public class SubsidyBle {
             // Characteristic が変化したら呼ばれる(データを取得するたびに呼ばれる)
             //arduinoで{String s = x + "," + y + "," + z}この形で送る
             // キャラクタリスティックのUUIDをチェック
-            if (m.mainView) {
-                if (READ_UUID.equals(characteristic.getUuid().toString())) {
-                    try {
-                        String data = characteristic.getStringValue(0);//データ取得
-                        if (data != null && data.length() > 0) {
-                            String[] listData = data.split(",");           //取得したデータを","の位置で分割
-                            int xData = Integer.parseInt(listData[0]);
-                            int yData = Integer.parseInt(listData[1]);
-                            int zData = Integer.parseInt(listData[2]);
-                            Log.i(TAG, "x:" + xData + "y:" + yData + "z:" + zData);
-                            m.LatestData(xData, yData, zData);
+            try {
+                if (m.mainView) {
+                    if (READ_UUID.equals(characteristic.getUuid().toString())) {
+                        try {
+                            String data = characteristic.getStringValue(0);//データ取得
+                            if (data != null && data.length() > 0) {
+                                String[] listData = data.split(",");           //取得したデータを","の位置で分割
+                                int xData = Integer.parseInt(listData[0]);
+                                int yData = Integer.parseInt(listData[1]);
+                                int zData = Integer.parseInt(listData[2]);
+                                Log.i(TAG, "x:" + xData + "y:" + yData + "z:" + zData);
+                                m.LatestData(xData, yData, zData);
+                            }
+                        } catch (IndexOutOfBoundsException e) {
+                            Log.e(TAG, "エラー:" + e);
                         }
-                    } catch (IndexOutOfBoundsException e) {
-                        Log.e(TAG, "エラー:" + e);
                     }
                 }
-            }else if (g.gameView){
-                if (READ_UUID.equals(characteristic.getUuid().toString())){
-                    try {
-                        String data = characteristic.getStringValue(0);
-                        if (data != null && data.length() > 0){
-                            String[] listData = data.split(",");//取得したデータを","の位置で分割
-                            int xData = Integer.parseInt(listData[0]);
-                            int yData = Integer.parseInt(listData[1]);
-                            int zData = Integer.parseInt(listData[2]);
-                            g.dataSet(xData,yData,zData);
+            }catch (NullPointerException e){}
+            try {
+                if (g.gameView) {
+                    if (READ_UUID.equals(characteristic.getUuid().toString())) {
+                        try {
+                            String data = characteristic.getStringValue(0);
+                            if (data != null && data.length() > 0) {
+                                String[] listData = data.split(",");//取得したデータを","の位置で分割
+                                int xData = Integer.parseInt(listData[0]);
+                                int yData = Integer.parseInt(listData[1]);
+                                int zData = Integer.parseInt(listData[2]);
+                                Log.d("測定", data);
+                                g.dataSet(xData, yData, zData);
+                            }
+                        } catch (IndexOutOfBoundsException e) {
                         }
-                    }catch (IndexOutOfBoundsException e){}
+                    }
                 }
-            }else if (g.testGame1){
-                if (READ_UUID.equals(characteristic.getUuid().toString())){
-                    try {
-                        String data = characteristic.getStringValue(0);
-                        if (data != null && data.length() > 0){
-                            String[] listData = data.split(",");//取得したデータを","の位置で分割
-                            int xData = Integer.parseInt(listData[0]);
-                            int yData = Integer.parseInt(listData[1]);
-                            int zData = Integer.parseInt(listData[2]);
-                            g.tempSave(xData,yData,zData);
+            }catch (NullPointerException e){}
+            try {
+                if (g.testGame1) {
+                    if (READ_UUID.equals(characteristic.getUuid().toString())) {
+                        try {
+                            String data = characteristic.getStringValue(0);
+                            if (data != null && data.length() > 0) {
+                                String[] listData = data.split(",");//取得したデータを","の位置で分割
+                                int xData = Integer.parseInt(listData[0]);
+                                int yData = Integer.parseInt(listData[1]);
+                                int zData = Integer.parseInt(listData[2]);
+                                Log.d("ゲーム中", data);
+                                g.tempSave(xData, yData, zData);
+                            }
+                        } catch (IndexOutOfBoundsException e) {
                         }
-                    }catch (IndexOutOfBoundsException e){}
+                    }
                 }
-            }
+            }catch (NullPointerException e){}
         }
     };
 

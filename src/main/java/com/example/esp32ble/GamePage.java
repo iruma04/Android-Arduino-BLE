@@ -44,6 +44,7 @@ public class GamePage extends AppCompatActivity implements MenuItem.OnMenuItemCl
     private TextView allState;
 
     private SubsidyBle subBle;
+    private gameDialog dialog;
     public boolean gameView = false;
     public boolean testGame1 = false; //test
     private int nData = 0;
@@ -93,7 +94,6 @@ public class GamePage extends AppCompatActivity implements MenuItem.OnMenuItemCl
         iscText = findViewById(R.id.instructionsText);
         next = findViewById(R.id.nextButton);
         findViewById(R.id.nextButton).setOnClickListener(this::next);
-        //クリックメソッドを定義
 
         connectState = findViewById(R.id.connect_state);
         mcuState = findViewById(R.id.mcu_state);
@@ -160,6 +160,7 @@ public class GamePage extends AppCompatActivity implements MenuItem.OnMenuItemCl
                         logState.setText("・接続が確立しました");
                         allState.setText("・ゲームを開始できます");
                         iscText.setText("胸の前の位置で端末を固定してください");
+                        next.setText("測定を開始");
                         next.setEnabled(true);
                         justOne = true;  //接続が完了したときだけscanできなくするため
                     }
@@ -171,15 +172,26 @@ public class GamePage extends AppCompatActivity implements MenuItem.OnMenuItemCl
     public void next(View v){
         //同じボタンを使いまわすためif文を使う
         if (nPush==1) {
-            next.setEnabled(false);
-            iscText.setText("情報を取得しています");
-            nPush++;
-            gameView = true; //notifyで判断するため trueにすることによりdataSetが呼び出される
+            dialog = new gameDialog(this);
+            dialog.show(getSupportFragmentManager(), "g_dialog");
         }else if (nPush==2){
             next.setEnabled(false);
+            next.setText("終了");
             iscText.setText("手を上にあげてください");
+            nPush++;
             testGame1 = true;
+        }else if (nPush==3){
+            Intent gmIntent = new Intent(this,GamePage.class);
+            startActivity(gmIntent);
         }
+    }
+
+    public void zeroPoint(){
+        next.setEnabled(false);
+        next.setText("次へ");
+        iscText.setText("情報を取得しています");
+        nPush++;
+        gameView = true; //notifyで判断するため trueにすることによりdataSetが呼び出される
     }
 
     public void dataSet(int x, int y, int z){
@@ -187,6 +199,7 @@ public class GamePage extends AppCompatActivity implements MenuItem.OnMenuItemCl
             xVal += x;
             yVal += y;
             zVal += z;
+            nData++;
         }else{
             //ここにデータが来るのをやめる
             gameView = false;
@@ -194,8 +207,13 @@ public class GamePage extends AppCompatActivity implements MenuItem.OnMenuItemCl
             zeroX = xVal / 30;
             zeroY = yVal / 30;
             zeroZ = zVal / 30;
-            iscText.setText("ゼロ点の取得が完了しました"+"\n"+zeroX+" "+zeroY+" "+zeroZ);
-            next.setEnabled(true);
+            new Handler(Looper.getMainLooper()).post(new Runnable(){
+                @Override
+                public void run() {
+                    iscText.setText("ゼロ点の取得が完了しました"+"\n"+zeroX+" "+zeroY+" "+zeroZ);
+                    next.setEnabled(true);
+                }
+            });
         }
     }
 
@@ -204,9 +222,15 @@ public class GamePage extends AppCompatActivity implements MenuItem.OnMenuItemCl
         //複数のゲーム用にするために分岐処理を追加する必要がある
         //まずはテスト
         //手を上にあげてという指示 = z
-        if (z - zeroZ > 1000){  //初期値との差が1000より大きかったら
+        if (z - zeroZ > 400){  //初期値との差が1000より大きかったら
             testGame1 = false;
-            iscText.setText("合格です\n手を下ろしてください");
+            new Handler(Looper.getMainLooper()).post(new Runnable(){
+                @Override
+                public void run() {
+                    iscText.setText("合格です\n手を下ろしてください");
+                    next.setEnabled(true);
+                }
+            });
         }
     }
 
