@@ -30,30 +30,29 @@ int BLUE = 27;
 const int BUTTON = 13;
 bool state;
 
-const int x = 32;
-const int y = 35;
-const int z = 34;
+const int ax = 32;
+const int ay = 35;
+const int az = 34;
 
 String aSensorX() {
-  int x = analogRead(x); // X軸
+  int x = analogRead(ax); // X軸
   String sx = (String)x;
   return sx;
 }
 
 String aSensorY() {
-  int y = analogRead(y);
+  int y = analogRead(ay);
   String sy = (String)y;
   return sy;
 }
 
 String aSensorZ() {
-  int z = analogRead(z);
+  int z = analogRead(az);
   String sz = (String)z;
   return sz;
 }
 
 void mButton() {
-  noInterrupts();
   if (state) {
     //機器の状態をoffにするときの処理
     state = false;
@@ -69,7 +68,6 @@ void mButton() {
     digitalWrite(GREEN, HIGH);
     digitalWrite(BLUE, LOW);
   }
-  interrupts();
 }
 
 void setup() {
@@ -84,9 +82,9 @@ void setup() {
   pinMode(BLUE, OUTPUT);
   pinMode(BUTTON, INPUT);
 
-  pinMode(x, INPUT);
-  pinMode(y, INPUT);
-  pinMode(z, INPUT);
+  pinMode(ax, INPUT);
+  pinMode(ay, INPUT);
+  pinMode(az, INPUT);
 
   //初期設定として青を出力
   digitalWrite(RED, LOW);
@@ -96,7 +94,7 @@ void setup() {
   state = false;
 
   //割り込み処理
-  attachInterrupt(2, mButton, RISING);
+  attachInterrupt(BUTTON, mButton, RISING);
 
   //BLEセットアップ
   BLEDevice::init("ESP32");
@@ -149,13 +147,12 @@ void loop() {
     }
   } else {
     //シリアルプロッタ用
-    Serial.print(analogRead(x));
+    Serial.print(analogRead(ax));
     Serial.print(",");
-    Serial.print(analogRead(y));
+    Serial.print(analogRead(ay));
     Serial.print(",");
-    Serial.print(analogRead(z));
+    Serial.print(analogRead(az));
     Serial.println("");
   }
-
-  delay(100);
+  delay(10);
 }
